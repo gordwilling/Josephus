@@ -29,29 +29,36 @@ class MainSpec extends FunSpec with Matchers with GeneratorDrivenPropertyChecks 
   }
 
   describe("Main") {
-    def outputShouldBeUsage(emptyArray: Array[String]) = {
+    def outputShouldBeUsage(ss: String*) = {
       val bos = new ByteArrayOutputStream()
       Console.withOut(bos) {
-        Main.main(emptyArray)
+        Main.main(ss.toArray)
       }
-      bos.toString shouldEqual Main.usage
+      bos.toString.trim shouldEqual Main.usage.trim
     }
 
     it("prints the usage message when no parameters are given on the command line") {
-      outputShouldBeUsage(Array.empty[String])
+      outputShouldBeUsage()
     }
 
     it("prints the usage message when only one parameter is given on the command line") {
-      outputShouldBeUsage(Array("1"))
+      outputShouldBeUsage("1")
     }
 
     it("prints the usage message when non-integer parameters are given on the command line") {
-      outputShouldBeUsage(Array("a", "b"))
+      outputShouldBeUsage("a", "b")
+    }
+
+    it("prints the usage message when any of the two parameters are less than 1") {
+      outputShouldBeUsage("-1", "-1")
+      outputShouldBeUsage("0", "0")
+      outputShouldBeUsage("0", "1")
+      outputShouldBeUsage("1", "0")
     }
   }
 
   describe("Josephus(n, k)") {
-    it("resolves to a cycle-binary-shift 1 left on n when k = 2") {
+    it("resolves to a cyclical binary shift by 1 left on n when k = 2") {
       forAll(genN) {
         (n: Int) => {
           def leftCyclicalShift(i: Int) = {

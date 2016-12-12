@@ -1,7 +1,6 @@
 package com.highbar.josephus
 
 import scala.annotation.tailrec
-import scala.util.Success
 import scala.util.Try
 
 object Main {
@@ -12,10 +11,7 @@ object Main {
       k <- Try(Integer.parseInt(args(1)))
     } yield josephus(n, k)
 
-    result match {
-      case Success(i) => println(s"$i")
-      case _ => print(usage)
-    }
+    println(result.getOrElse(usage))
   }
 
   def josephus(n: Int, k: Int): Int = {

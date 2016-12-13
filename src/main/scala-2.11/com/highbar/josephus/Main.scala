@@ -26,11 +26,12 @@ object Main {
 
   def usage: String = {
     s"""
-       |Usage: run n k   where n is the number of people in the circle,
-       |                       k is the step size,
-       |                       0 < n; n is an Integer
-       |                       0 < k; k is an Integer
+       |Usage from sbt:
        |
+       |  run n k   where n is the number of people in the circle,
+       |                  k is the step size,
+       |                  0 < n; n is an Integer
+       |                  0 < k; k is an Integer
       """.stripMargin
   }
 }

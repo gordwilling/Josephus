@@ -18,7 +18,7 @@ https://en.wikipedia.org/wiki/Josephus_problem
 ```
 5. SBT should download \*only some\* of the internet, compile and run
 
-6. Unit tests were written with ScalaTest and ScalaCheck. To run the unit tests:
+6. Unit tests were written with [ScalaTest](http://www.scalatest.org/) and [ScalaCheck](https://scalacheck.org/). To run the unit tests:
 
 ```
   sbt test

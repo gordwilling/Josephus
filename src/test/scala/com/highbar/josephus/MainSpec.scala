@@ -6,37 +6,11 @@ import org.scalatest.FunSpec
 import org.scalatest.Matchers
 import org.scalatest.prop.GeneratorDrivenPropertyChecks
 
-import scala.collection.mutable
+import scala.annotation.tailrec
 
 class MainSpec extends FunSpec with Matchers with GeneratorDrivenPropertyChecks {
 
-  def memoize[T, R](f: T => R): T => R = {
-    new mutable.HashMap[T, R]() {
-      override def apply(t: T): R = getOrElseUpdate(t, f(t))
-    }
-  }
-
-  /**
-    * This version isn't tail recursive and blows up
-    * the stack on moderately large n ( ~ > 7500 on my machine)
-    * However, we can use it to test against the other version
-    * for n below this range
-    */
-  lazy val josephus: ((Int, Int)) => Int = memoize[(Int, Int), Int] {
-    case (n, k) if n < 1 || k < 1 => throw new IllegalArgumentException("undefined where n < 1 or k < 1")
-    case (n, _) if n == 1 => 1
-    case (n, k) => ((josephus((n - 1, k)) + k - 1) % n) + 1
-  }
-
   describe("Main") {
-    def outputShouldBeUsage(ss: String*) = {
-      val bos = new ByteArrayOutputStream()
-      Console.withOut(bos) {
-        Main.main(ss.toArray)
-      }
-      bos.toString.trim shouldEqual Main.usage.trim
-    }
-
     it("prints the usage message when no parameters are given on the command line") {
       outputShouldBeUsage()
     }
@@ -55,17 +29,33 @@ class MainSpec extends FunSpec with Matchers with GeneratorDrivenPropertyChecks 
       outputShouldBeUsage("0", "1")
       outputShouldBeUsage("1", "0")
     }
+
+    def outputShouldBeUsage(ss: String*) = {
+      val bos = new ByteArrayOutputStream()
+      Console.withOut(bos) {
+        Main.main(ss.toArray)
+      }
+      bos.toString.trim shouldEqual Main.usage.trim
+    }
   }
 
   describe("Josephus(n, k)") {
     it("resolves to a cyclical binary shift by 1 left on n when k = 2") {
-      forAll(genN) {
+      forAll(genInt) {
         (n: Int) => {
-          def leftCyclicalShift(i: Int) = {
+          def shiftLeftCyclical(i: Int) = {
             val j = Integer.highestOneBit(i)
             ((i ^ j) << 1) | 1
           }
-          Main.josephus(n, 2) shouldEqual leftCyclicalShift(n)
+          Main.josephus(n, 2) shouldEqual shiftLeftCyclical(n)
+        }
+      }
+    }
+
+    it("produces an answer when n = k, but the significance escapes me :(") {
+      forAll(genInt) {
+        (n: Int) => {
+          Main.josephus(n, n) should not be 0
         }
       }
     }
@@ -73,5 +63,41 @@ class MainSpec extends FunSpec with Matchers with GeneratorDrivenPropertyChecks 
     it("resolves to 3 when n = 3 and k = 2") {
       Main.josephus(3, 2) shouldEqual 3
     }
+
+    it("handles very large n and small k") {
+      noException should be thrownBy Main.josephus(1e8.toInt, 9)
+    }
+
+    it("handles small n and very large k") {
+      noException should be thrownBy Main.josephus(9, 1e8.toInt)
+    }
+
+    it("produces the same answer as the naive implementation") {
+      forAll(genSmallInt, genSmallInt) {
+        (n: Int, k: Int) => {
+          Main.josephus(n, k) shouldEqual naiveJosephus(n, k)
+        }
+      }
+    }
+  }
+
+  /**
+    * The naive approach puts the items in a circular collection
+    * and drops the kth element until there is only one item left
+    * We'll use this for testing - generated input values will be
+    * passed to both functions and the outputs should be equal
+    */
+  def naiveJosephus(n: Int, k: Int): Int = {
+    @tailrec
+    def drop(xs: Vector[Int], k: Int): Int = {
+      if (xs.size == 1) xs(0)
+      else if (xs.size < k) {
+        val mod = k % xs.size
+        if (mod == 0) drop(xs.dropRight(1), k)
+        else drop(xs.drop(mod) ++ xs.take(mod - 1), k)
+      }
+      else drop(xs.drop(k) ++ xs.take(k - 1), k)
+    }
+    drop((1 to n).toVector, k)
   }
 }

@@ -13,14 +13,16 @@ https://en.wikipedia.org/wiki/Josephus_problem
 3. Navigate to the root of the project on the command line
    
 4. Type:
-   
-       sbt "run n k"
-         
+```   
+  sbt "run n k"
+```
 5. SBT should download \*only some\* of the internet, compile and run
 
 6. Unit tests were written with ScalaTest and ScalaCheck. To run the unit tests:
 
-       sbt test
+```
+  sbt test
+```
        
        
 

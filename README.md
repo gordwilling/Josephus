@@ -12,7 +12,7 @@ https://en.wikipedia.org/wiki/Josephus_problem
  
 3. Navigate to the root of the project on the command line
    
-4. Type:
+4. Where n and k are integers greater than 0, type:
 ```   
   sbt "run n k"
 ```
